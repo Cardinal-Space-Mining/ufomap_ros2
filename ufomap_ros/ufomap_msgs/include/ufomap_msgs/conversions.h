@@ -54,16 +54,16 @@
 #include <ufo/geometry/sphere.h>
 
 // UFO msg
-#include <ufomap_msgs/AABB.h>
-#include <ufomap_msgs/BoundingVolume.h>
-#include <ufomap_msgs/Frustum.h>
-#include <ufomap_msgs/LineSegment.h>
-#include <ufomap_msgs/OBB.h>
-#include <ufomap_msgs/Plane.h>
-#include <ufomap_msgs/Point.h>
-#include <ufomap_msgs/Ray.h>
-#include <ufomap_msgs/Sphere.h>
-#include <ufomap_msgs/UFOMap.h>
+#include <ufomap_msgs/msg/AABB.hpp>
+#include <ufomap_msgs/msg/BoundingVolume.hpp>
+#include <ufomap_msgs/msg/Frustum.hpp>
+#include <ufomap_msgs/msg/LineSegment.hpp>
+#include <ufomap_msgs/msg/OBB.hpp>
+#include <ufomap_msgs/msg/Plane.hpp>
+#include <ufomap_msgs/msg/Point.hpp>
+#include <ufomap_msgs/msg/Ray.hpp>
+#include <ufomap_msgs/msg/Sphere.hpp>
+#include <ufomap_msgs/msg/UFOMap.hpp>
 
 // STD
 #include <type_traits>

@@ -1,3 +1,3 @@
-ufomap_msgs/Point origin
+Point origin
 
-ufomap_msgs/Point direction
+Point direction

@@ -1,3 +1,3 @@
-ufomap_msgs/Point normal
+Point normal
 
 float64 distance

@@ -1,5 +1,5 @@
-ufomap_msgs/Point center
+Point center
 
-ufomap_msgs/Point half_size
+Point half_size
 
-ufomap_msgs/Point rotation
+Point rotation

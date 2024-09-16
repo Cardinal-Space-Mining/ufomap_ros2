@@ -15,17 +15,13 @@ find_package(ufomap REQUIRED)
 set(MSG_FILES
   "msg/AABB.msg"
   "msg/BoundingVolume.msg"
-  "msg/Capsule.msg"
-  "msg/Cone.msg"
-  "msg/Cylinder.msg"
-  "msg/Ellipsoid.msg"
   "msg/Frustum.msg"
   "msg/LineSegment.msg"
   "msg/OBB.msg"
   "msg/Plane.msg"
+  "msg/Point.msg"
   "msg/Ray.msg"
   "msg/Sphere.msg"
-  "msg/Triangle.msg"
   "msg/UFOMap.msg"
   "msg/UFOMapMetaData.msg"
   "msg/UFOMapStamped.msg"
@@ -42,7 +38,27 @@ set(SRV_FILES
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${MSG_FILES}
   ${SRV_FILES}
-  DEPENDENCIES geometry_msgs std_msgs 
+  DEPENDENCIES geometry_msgs std_msgs
+)
+
+# Specify include directories
+include_directories(include)
+
+# Create the conversion library
+add_library(ufomap_msgs_conversion STATIC src/conversions.cpp)
+
+# Link the necessary libraries
+target_link_libraries(ufomap_msgs_conversion
+  PUBLIC
+    rclcpp::rclcpp
+    UFO::Map
+)
+
+# Install the library
+install(TARGETS ufomap_msgs_conversion
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
 # Install headers
@@ -55,37 +71,6 @@ install(DIRECTORY include/${PROJECT_NAME}/
 install(DIRECTORY msg/ srv/
   DESTINATION share/${PROJECT_NAME}
 )
-
-# Create the conversion library
-add_library(ufomap_msgs_conversion STATIC src/conversions.cpp)
-
-# Link other necessary libraries using the keyword signature
-target_link_libraries(ufomap_msgs_conversion
-    rclcpp::rclcpp
-    UFO::Map
-)
-
-rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
-target_link_libraries(ufomap_msgs_conversion "${cpp_typesupport_target}")
-
-# Install the library
-install(TARGETS ufomap_msgs_conversion
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
 
 # ROS 2 package declaration
 ament_package()

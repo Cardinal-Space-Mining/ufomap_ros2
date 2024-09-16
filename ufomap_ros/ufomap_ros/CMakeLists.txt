@@ -3,43 +3,49 @@ project(ufomap_ros)
 
 set(CMAKE_CXX_STANDARD 17)
 
-find_package(catkin REQUIRED COMPONENTS
-  geometry_msgs
-  roscpp
-  sensor_msgs
-)
+# Find ROS 2 packages
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 find_package(ufomap REQUIRED)
 
-catkin_package(
-  INCLUDE_DIRS include ${catkin_INCLUDE_DIRS}
-  LIBRARIES ${PROJECT_NAME} ${catkin_LIBRARIES}
-  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs
-)
-
+# Specify include directories
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
+  ${rclcpp_INCLUDE_DIRS}
+  ${geometry_msgs_INCLUDE_DIRS}
+  ${sensor_msgs_INCLUDE_DIRS}
+  ${ufomap_INCLUDE_DIRS}
 )
 
+# Declare a static library
 add_library(${PROJECT_NAME} STATIC
   src/conversions.cpp
 )
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+# Link against necessary libraries
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
-    ${catkin_LIBRARIES}
+    ${rclcpp_LIBRARIES}
+    ${geometry_msgs_LIBRARIES}
+    ${sensor_msgs_LIBRARIES}
     UFO::Map
 )
 
+# Install the library
 install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
 )
 
+# Install header files
 install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  DESTINATION include/${PROJECT_NAME}
   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
 )
+
+# ROS 2 package declaration
+ament_package()

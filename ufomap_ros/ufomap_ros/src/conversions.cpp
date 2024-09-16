@@ -43,11 +43,11 @@
 #include <ufomap_ros/conversions.h>
 
 // ROS
-#include <sensor_msgs/point_cloud2_iterator.h>
+#include <sensor_msgs/point_cloud2_iterator.hpp>
 
 namespace ufomap_ros
 {
-void getFields(sensor_msgs::PointCloud2 const& cloud, bool& has_x, bool& has_y,
+void getFields(sensor_msgs::msg::PointCloud2 const& cloud, bool& has_x, bool& has_y,
                bool& has_z, bool& has_rgb)
 {
 	has_x = false;
@@ -74,7 +74,8 @@ void getFields(sensor_msgs::PointCloud2 const& cloud, bool& has_x, bool& has_y,
 	}
 }
 
-void rosToUfo(sensor_msgs::PointCloud2 const& cloud_in, ufo::map::PointCloud& cloud_out)
+void rosToUfo(sensor_msgs::msg::PointCloud2 const& cloud_in,
+              ufo::map::PointCloud& cloud_out)
 {
 	cloud_out.reserve(cloud_in.data.size() / cloud_in.point_step);
 
@@ -95,7 +96,7 @@ void rosToUfo(sensor_msgs::PointCloud2 const& cloud_in, ufo::map::PointCloud& cl
 	}
 }
 
-void rosToUfo(sensor_msgs::PointCloud2 const& cloud_in,
+void rosToUfo(sensor_msgs::msg::PointCloud2 const& cloud_in,
               ufo::map::PointCloudColor& cloud_out)
 {
 	cloud_out.reserve(cloud_in.data.size() / cloud_in.point_step);
@@ -137,7 +138,8 @@ void rosToUfo(sensor_msgs::PointCloud2 const& cloud_in,
 	}
 }
 
-void ufoToRos(ufo::map::PointCloud const& cloud_in, sensor_msgs::PointCloud2& cloud_out)
+void ufoToRos(ufo::map::PointCloud const& cloud_in,
+              sensor_msgs::msg::PointCloud2& cloud_out)
 {
 	bool has_x, has_y, has_z, has_rgb;
 	getFields(cloud_out, has_x, has_y, has_z, has_rgb);
@@ -158,7 +160,7 @@ void ufoToRos(ufo::map::PointCloud const& cloud_in, sensor_msgs::PointCloud2& cl
 }
 
 void ufoToRos(ufo::map::PointCloudColor const& cloud_in,
-              sensor_msgs::PointCloud2& cloud_out)
+              sensor_msgs::msg::PointCloud2& cloud_out)
 {
 	bool has_x, has_y, has_z, has_rgb;
 	getFields(cloud_out, has_x, has_y, has_z, has_rgb);
@@ -187,48 +189,48 @@ void ufoToRos(ufo::map::PointCloudColor const& cloud_in,
 
 // Vector3/Point
 
-void rosToUfo(geometry_msgs::Point const& point_in, ufo::math::Vector3& point_out)
+void rosToUfo(geometry_msgs::msg::Point const& point_in, ufo::math::Vector3& point_out)
 {
 	point_out.x() = point_in.x;
 	point_out.y() = point_in.y;
 	point_out.z() = point_in.z;
 }
 
-void rosToUfo(geometry_msgs::Vector3 const& point_in, ufo::math::Vector3& point_out)
+void rosToUfo(geometry_msgs::msg::Vector3 const& point_in, ufo::math::Vector3& point_out)
 {
 	point_out.x() = point_in.x;
 	point_out.y() = point_in.y;
 	point_out.z() = point_in.z;
 }
 
-ufo::math::Vector3 rosToUfo(geometry_msgs::Point const& point)
+ufo::math::Vector3 rosToUfo(geometry_msgs::msg::Point const& point)
 {
 	return ufo::math::Vector3(point.x, point.y, point.z);
 }
 
-void ufoToRos(ufo::math::Vector3 const& point_in, geometry_msgs::Point& point_out)
+void ufoToRos(ufo::math::Vector3 const& point_in, geometry_msgs::msg::Point& point_out)
 {
 	point_out.x = point_in.x();
 	point_out.y = point_in.y();
 	point_out.z = point_in.z();
 }
 
-void ufoToRos(ufo::math::Vector3 const& point_in, geometry_msgs::Vector3& point_out)
+void ufoToRos(ufo::math::Vector3 const& point_in, geometry_msgs::msg::Vector3& point_out)
 {
 	point_out.x = point_in.x();
 	point_out.y = point_in.y();
 	point_out.z = point_in.z();
 }
 
-geometry_msgs::Point ufoToRos(ufo::math::Vector3 const& point)
+geometry_msgs::msg::Point ufoToRos(ufo::math::Vector3 const& point)
 {
-	geometry_msgs::Point point_out;
+	geometry_msgs::msg::Point point_out;
 	ufoToRos(point, point_out);
 	return point_out;
 }
 
 // Quaternion
-void rosToUfo(geometry_msgs::Quaternion const& quaternion_in,
+void rosToUfo(geometry_msgs::msg::Quaternion const& quaternion_in,
               ufo::math::Quaternion& quaternion_out)
 {
 	quaternion_out.x() = quaternion_in.x;
@@ -237,13 +239,13 @@ void rosToUfo(geometry_msgs::Quaternion const& quaternion_in,
 	quaternion_out.w() = quaternion_in.w;
 }
 
-ufo::math::Quaternion rosToUfo(geometry_msgs::Quaternion const& quaternion)
+ufo::math::Quaternion rosToUfo(geometry_msgs::msg::Quaternion const& quaternion)
 {
 	return ufo::math::Quaternion(quaternion.w, quaternion.x, quaternion.y, quaternion.z);
 }
 
 void ufoToRos(ufo::math::Quaternion const& quaternion_in,
-              geometry_msgs::Quaternion& quaternion_out)
+              geometry_msgs::msg::Quaternion& quaternion_out)
 {
 	quaternion_out.x = quaternion_in.x();
 	quaternion_out.y = quaternion_in.y();
@@ -251,22 +253,22 @@ void ufoToRos(ufo::math::Quaternion const& quaternion_in,
 	quaternion_out.w = quaternion_in.w();
 }
 
-geometry_msgs::Quaternion ufoToRos(ufo::math::Quaternion const& quaternion)
+geometry_msgs::msg::Quaternion ufoToRos(ufo::math::Quaternion const& quaternion)
 {
-	geometry_msgs::Quaternion quaternion_out;
+	geometry_msgs::msg::Quaternion quaternion_out;
 	ufoToRos(quaternion, quaternion_out);
 	return quaternion_out;
 }
 
 // Transforms
-void rosToUfo(geometry_msgs::Transform const& transform_in,
+void rosToUfo(geometry_msgs::msg::Transform const& transform_in,
               ufo::math::Pose6& transform_out)
 {
 	rosToUfo(transform_in.translation, transform_out.translation());
 	rosToUfo(transform_in.rotation, transform_out.rotation());
 }
 
-ufo::math::Pose6 rosToUfo(geometry_msgs::Transform const& transform)
+ufo::math::Pose6 rosToUfo(geometry_msgs::msg::Transform const& transform)
 {
 	return ufo::math::Pose6(transform.translation.x, transform.translation.y,
 	                        transform.translation.z, transform.rotation.w,
@@ -275,15 +277,15 @@ ufo::math::Pose6 rosToUfo(geometry_msgs::Transform const& transform)
 }
 
 void ufoToRos(ufo::math::Pose6 const& transform_in,
-              geometry_msgs::Transform& transform_out)
+              geometry_msgs::msg::Transform& transform_out)
 {
 	ufoToRos(transform_in.translation(), transform_out.translation);
 	ufoToRos(transform_in.rotation(), transform_out.rotation);
 }
 
-geometry_msgs::Transform ufoToRos(ufo::math::Pose6 const& transform)
+geometry_msgs::msg::Transform ufoToRos(ufo::math::Pose6 const& transform)
 {
-	geometry_msgs::Transform transform_out;
+	geometry_msgs::msg::Transform transform_out;
 	ufoToRos(transform, transform_out);
 	return transform_out;
 }
