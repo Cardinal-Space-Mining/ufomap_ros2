@@ -1,3 +1,3 @@
-Point origin
+geometry_msgs/Point origin
 
-Point direction
+geometry_msgs/Point direction

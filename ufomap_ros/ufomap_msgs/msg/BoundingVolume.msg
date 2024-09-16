@@ -1,25 +1,25 @@
-AABB[] aabbs
+ufomap_msgs/AABB[] aabbs
 
-# Capsule[] capsules
+# ufomap_msgs/Capsule[] capsules
 
-# Cone[] cones
+# ufomap_msgs/Cone[] cones
 
-# Cylinder[] cylinders
+# ufomap_msgs/Cylinder[] cylinders
 
-# Ellipsoid[] ellipsoids
+# ufomap_msgs/Ellipsoid[] ellipsoids
 
-Frustum[] frustums
+ufomap_msgs/Frustum[] frustums
 
-LineSegment[] line_segments
+ufomap_msgs/LineSegment[] line_segments
 
-OBB[] obbs
+ufomap_msgs/OBB[] obbs
 
-Plane[] planes
+ufomap_msgs/Plane[] planes
 
-Point[] points
+geometry_msgs/Point[] points
 
-Ray[] rays
+ufomap_msgs/Ray[] rays
 
-Sphere[] spheres
+ufomap_msgs/Sphere[] spheres
 
-# Triangle[] triangles
+# ufomap_msgs/Triangle[] triangles

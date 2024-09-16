@@ -39,16 +39,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ufomap_msgs/conversions.h>
+#include "ufomap_msgs/conversions.h"
 
 namespace ufomap_msgs
 {
-ufo::geometry::Point msgToUfo(ufomap_msgs::Point const& point)
+ufo::geometry::Point msgToUfo(geometry_msgs::msg::Point const& point)
 {
 	return ufo::geometry::Point(point.x, point.y, point.z);
 }
 
-ufo::geometry::AABB msgToUfo(ufomap_msgs::AABB const& aabb)
+ufo::geometry::AABB msgToUfo(ufomap_msgs::msg::AABB const& aabb)
 {
 	ufo::geometry::AABB a;
 	a.center = msgToUfo(aabb.center);
@@ -56,12 +56,12 @@ ufo::geometry::AABB msgToUfo(ufomap_msgs::AABB const& aabb)
 	return a;
 }
 
-ufo::geometry::Plane msgToUfo(ufomap_msgs::Plane const& plane)
+ufo::geometry::Plane msgToUfo(ufomap_msgs::msg::Plane const& plane)
 {
 	return ufo::geometry::Plane(msgToUfo(plane.normal), plane.distance);
 }
 
-ufo::geometry::Frustum msgToUfo(ufomap_msgs::Frustum const& frustum)
+ufo::geometry::Frustum msgToUfo(ufomap_msgs::msg::Frustum const& frustum)
 {
 	ufo::geometry::Frustum f;
 	for (size_t i = 0; i < frustum.planes.size(); ++i) {
@@ -70,53 +70,53 @@ ufo::geometry::Frustum msgToUfo(ufomap_msgs::Frustum const& frustum)
 	return f;
 }
 
-ufo::geometry::LineSegment msgToUfo(ufomap_msgs::LineSegment const& line_segment)
+ufo::geometry::LineSegment msgToUfo(ufomap_msgs::msg::LineSegment const& line_segment)
 {
 	return ufo::geometry::LineSegment(msgToUfo(line_segment.start),
 	                                  msgToUfo(line_segment.end));
 }
 
-ufo::geometry::OBB msgToUfo(ufomap_msgs::OBB const& obb)
+ufo::geometry::OBB msgToUfo(ufomap_msgs::msg::OBB const& obb)
 {
 	return ufo::geometry::OBB(msgToUfo(obb.center), msgToUfo(obb.half_size),
 	                          msgToUfo(obb.rotation));
 }
 
-ufo::geometry::Ray msgToUfo(ufomap_msgs::Ray const& ray)
+ufo::geometry::Ray msgToUfo(ufomap_msgs::msg::Ray const& ray)
 {
 	return ufo::geometry::Ray(msgToUfo(ray.origin), msgToUfo(ray.direction));
 }
 
-ufo::geometry::Sphere msgToUfo(ufomap_msgs::Sphere const& sphere)
+ufo::geometry::Sphere msgToUfo(ufomap_msgs::msg::Sphere const& sphere)
 {
 	return ufo::geometry::Sphere(msgToUfo(sphere.center), sphere.radius);
 }
 
-ufo::geometry::BoundingVolume msgToUfo(ufomap_msgs::BoundingVolume const& msg)
+ufo::geometry::BoundingVolume msgToUfo(ufomap_msgs::msg::BoundingVolume const& msg)
 {
 	ufo::geometry::BoundingVolume bv;
-	for (ufomap_msgs::AABB const& aabb : msg.aabbs) {
+	for (ufomap_msgs::msg::AABB const& aabb : msg.aabbs) {
 		bv.add(msgToUfo(aabb));
 	}
-	for (ufomap_msgs::Frustum const& frustum : msg.frustums) {
+	for (ufomap_msgs::msg::Frustum const& frustum : msg.frustums) {
 		bv.add(msgToUfo(frustum));
 	}
-	for (ufomap_msgs::LineSegment const& line_segment : msg.line_segments) {
+	for (ufomap_msgs::msg::LineSegment const& line_segment : msg.line_segments) {
 		bv.add(msgToUfo(line_segment));
 	}
-	for (ufomap_msgs::OBB const& obb : msg.obbs) {
+	for (ufomap_msgs::msg::OBB const& obb : msg.obbs) {
 		bv.add(msgToUfo(obb));
 	}
-	for (ufomap_msgs::Plane const& plane : msg.planes) {
+	for (ufomap_msgs::msg::Plane const& plane : msg.planes) {
 		bv.add(msgToUfo(plane));
 	}
-	for (ufomap_msgs::Point const& point : msg.points) {
+	for (geometry_msgs::msg::Point const& point : msg.points) {
 		bv.add(msgToUfo(point));
 	}
-	for (ufomap_msgs::Ray const& ray : msg.rays) {
+	for (ufomap_msgs::msg::Ray const& ray : msg.rays) {
 		bv.add(msgToUfo(ray));
 	}
-	for (ufomap_msgs::Sphere const& sphere : msg.spheres) {
+	for (ufomap_msgs::msg::Sphere const& sphere : msg.spheres) {
 		bv.add(msgToUfo(sphere));
 	}
 	return bv;
@@ -126,51 +126,51 @@ ufo::geometry::BoundingVolume msgToUfo(ufomap_msgs::BoundingVolume const& msg)
 // UFOMap type to ROS message type
 //
 
-ufomap_msgs::Point ufoToMsg(ufo::geometry::Point const& point)
+geometry_msgs::msg::Point ufoToMsg(ufo::geometry::Point const& point)
 {
-	ufomap_msgs::Point msg;
+	geometry_msgs::msg::Point msg;
 	msg.x = point.x();
 	msg.y = point.y();
 	msg.z = point.z();
 	return msg;
 }
 
-ufomap_msgs::AABB ufoToMsg(ufo::geometry::AABB const& aabb)
+ufomap_msgs::msg::AABB ufoToMsg(ufo::geometry::AABB const& aabb)
 {
-	ufomap_msgs::AABB msg;
+	ufomap_msgs::msg::AABB msg;
 	msg.center = ufoToMsg(aabb.center);
 	msg.half_size = ufoToMsg(aabb.half_size);
 	return msg;
 }
 
-ufomap_msgs::Plane ufoToMsg(ufo::geometry::Plane const& plane)
+ufomap_msgs::msg::Plane ufoToMsg(ufo::geometry::Plane const& plane)
 {
-	ufomap_msgs::Plane msg;
+	ufomap_msgs::msg::Plane msg;
 	msg.normal = ufoToMsg(plane.normal);
 	msg.distance = plane.distance;
 	return msg;
 }
 
-ufomap_msgs::Frustum ufoToMsg(ufo::geometry::Frustum const& frustum)
+ufomap_msgs::msg::Frustum ufoToMsg(ufo::geometry::Frustum const& frustum)
 {
-	ufomap_msgs::Frustum msg;
+	ufomap_msgs::msg::Frustum msg;
 	for (size_t i = 0; i < msg.planes.size(); ++i) {
 		msg.planes[i] = ufoToMsg(frustum.planes[i]);
 	}
 	return msg;
 }
 
-ufomap_msgs::LineSegment ufoToMsg(ufo::geometry::LineSegment const& line_segment)
+ufomap_msgs::msg::LineSegment ufoToMsg(ufo::geometry::LineSegment const& line_segment)
 {
-	ufomap_msgs::LineSegment msg;
+	ufomap_msgs::msg::LineSegment msg;
 	msg.start = ufoToMsg(line_segment.start);
 	msg.end = ufoToMsg(line_segment.end);
 	return msg;
 }
 
-ufomap_msgs::OBB ufoToMsg(ufo::geometry::OBB const& obb)
+ufomap_msgs::msg::OBB ufoToMsg(ufo::geometry::OBB const& obb)
 {
-	ufomap_msgs::OBB msg;
+	ufomap_msgs::msg::OBB msg;
 	msg.center = ufoToMsg(obb.center);
 	msg.half_size = ufoToMsg(obb.half_size);
 	// TODO: Fix
@@ -178,25 +178,26 @@ ufomap_msgs::OBB ufoToMsg(ufo::geometry::OBB const& obb)
 	return msg;
 }
 
-ufomap_msgs::Ray ufoToMsg(ufo::geometry::Ray const& ray)
+ufomap_msgs::msg::Ray ufoToMsg(ufo::geometry::Ray const& ray)
 {
-	ufomap_msgs::Ray msg;
+	ufomap_msgs::msg::Ray msg;
 	msg.origin = ufoToMsg(ray.origin);
 	msg.direction = ufoToMsg(ray.direction);
 	return msg;
 }
 
-ufomap_msgs::Sphere ufoToMsg(ufo::geometry::Sphere const& sphere)
+ufomap_msgs::msg::Sphere ufoToMsg(ufo::geometry::Sphere const& sphere)
 {
-	ufomap_msgs::Sphere msg;
+	ufomap_msgs::msg::Sphere msg;
 	msg.center = ufoToMsg(sphere.center);
 	msg.radius = sphere.radius;
 	return msg;
 }
 
-ufomap_msgs::BoundingVolume ufoToMsg(ufo::geometry::BoundingVolume const& bounding_volume)
+ufomap_msgs::msg::BoundingVolume ufoToMsg(
+    ufo::geometry::BoundingVolume const& bounding_volume)
 {
-	ufomap_msgs::BoundingVolume msg;
+	ufomap_msgs::msg::BoundingVolume msg;
 	for (ufo::geometry::BoundingVar const& bv : bounding_volume) {
 		std::visit(
 		    [&msg](auto&& arg) -> void {

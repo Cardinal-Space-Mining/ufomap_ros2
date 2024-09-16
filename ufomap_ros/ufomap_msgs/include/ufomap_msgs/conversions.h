@@ -53,17 +53,19 @@
 #include <ufo/geometry/ray.h>
 #include <ufo/geometry/sphere.h>
 
+// ROS msg
+#include <geometry_msgs/msg/point.hpp>
+
 // UFO msg
-#include <ufomap_msgs/msg/AABB.hpp>
-#include <ufomap_msgs/msg/BoundingVolume.hpp>
-#include <ufomap_msgs/msg/Frustum.hpp>
-#include <ufomap_msgs/msg/LineSegment.hpp>
-#include <ufomap_msgs/msg/OBB.hpp>
-#include <ufomap_msgs/msg/Plane.hpp>
-#include <ufomap_msgs/msg/Point.hpp>
-#include <ufomap_msgs/msg/Ray.hpp>
-#include <ufomap_msgs/msg/Sphere.hpp>
-#include <ufomap_msgs/msg/UFOMap.hpp>
+#include <ufomap_msgs/msg/aabb.hpp>
+#include <ufomap_msgs/msg/bounding_volume.hpp>
+#include <ufomap_msgs/msg/frustum.hpp>
+#include <ufomap_msgs/msg/line_segment.hpp>
+#include <ufomap_msgs/msg/obb.hpp>
+#include <ufomap_msgs/msg/plane.hpp>
+#include <ufomap_msgs/msg/ray.hpp>
+#include <ufomap_msgs/msg/sphere.hpp>
+#include <ufomap_msgs/msg/ufo_map.hpp>
 
 // STD
 #include <type_traits>
@@ -74,45 +76,45 @@ namespace ufomap_msgs
 // ROS message type to UFO type
 //
 
-ufo::geometry::Point msgToUfo(ufomap_msgs::Point const& point);
+ufo::geometry::Point msgToUfo(geometry_msgs::msg::Point const& point);
 
-ufo::geometry::AABB msgToUfo(ufomap_msgs::AABB const& aabb);
+ufo::geometry::AABB msgToUfo(ufomap_msgs::msg::AABB const& aabb);
 
-ufo::geometry::Plane msgToUfo(ufomap_msgs::Plane const& plane);
+ufo::geometry::Plane msgToUfo(ufomap_msgs::msg::Plane const& plane);
 
-ufo::geometry::Frustum msgToUfo(ufomap_msgs::Frustum const& frustum);
+ufo::geometry::Frustum msgToUfo(ufomap_msgs::msg::Frustum const& frustum);
 
-ufo::geometry::LineSegment msgToUfo(ufomap_msgs::LineSegment const& line_segment);
+ufo::geometry::LineSegment msgToUfo(ufomap_msgs::msg::LineSegment const& line_segment);
 
-ufo::geometry::OBB msgToUfo(ufomap_msgs::OBB const& obb);
+ufo::geometry::OBB msgToUfo(ufomap_msgs::msg::OBB const& obb);
 
-ufo::geometry::Ray msgToUfo(ufomap_msgs::Ray const& ray);
+ufo::geometry::Ray msgToUfo(ufomap_msgs::msg::Ray const& ray);
 
-ufo::geometry::Sphere msgToUfo(ufomap_msgs::Sphere const& sphere);
+ufo::geometry::Sphere msgToUfo(ufomap_msgs::msg::Sphere const& sphere);
 
-ufo::geometry::BoundingVolume msgToUfo(ufomap_msgs::BoundingVolume const& msg);
+ufo::geometry::BoundingVolume msgToUfo(ufomap_msgs::msg::BoundingVolume const& msg);
 
 //
 // UFO type to ROS message type
 //
 
-ufomap_msgs::Point ufoToMsg(ufo::geometry::Point const& point);
+geometry_msgs::msg::Point ufoToMsg(ufo::geometry::Point const& point);
 
-ufomap_msgs::AABB ufoToMsg(ufo::geometry::AABB const& aabb);
+ufomap_msgs::msg::AABB ufoToMsg(ufo::geometry::AABB const& aabb);
 
-ufomap_msgs::Plane ufoToMsg(ufo::geometry::Plane const& plane);
+ufomap_msgs::msg::Plane ufoToMsg(ufo::geometry::Plane const& plane);
 
-ufomap_msgs::Frustum ufoToMsg(ufo::geometry::Frustum const& frustum);
+ufomap_msgs::msg::Frustum ufoToMsg(ufo::geometry::Frustum const& frustum);
 
-ufomap_msgs::LineSegment ufoToMsg(ufo::geometry::LineSegment const& line_segment);
+ufomap_msgs::msg::LineSegment ufoToMsg(ufo::geometry::LineSegment const& line_segment);
 
-ufomap_msgs::OBB ufoToMsg(ufo::geometry::OBB const& obb);
+ufomap_msgs::msg::OBB ufoToMsg(ufo::geometry::OBB const& obb);
 
-ufomap_msgs::Ray ufoToMsg(ufo::geometry::Ray const& ray);
+ufomap_msgs::msg::Ray ufoToMsg(ufo::geometry::Ray const& ray);
 
-ufomap_msgs::Sphere ufoToMsg(ufo::geometry::Sphere const& sphere);
+ufomap_msgs::msg::Sphere ufoToMsg(ufo::geometry::Sphere const& sphere);
 
-ufomap_msgs::BoundingVolume ufoToMsg(
+ufomap_msgs::msg::BoundingVolume ufoToMsg(
     ufo::geometry::BoundingVolume const& bounding_volume);
 
 //
@@ -120,7 +122,7 @@ ufomap_msgs::BoundingVolume ufoToMsg(
 //
 
 template <typename TreeType>
-bool msgToUfo(ufomap_msgs::UFOMap const& msg, TreeType& tree)
+bool msgToUfo(ufomap_msgs::msg::UFOMap const& msg, TreeType& tree)
 {
 	std::stringstream data_stream(std::ios_base::in | std::ios_base::out |
 	                              std::ios_base::binary);
@@ -138,7 +140,7 @@ bool msgToUfo(ufomap_msgs::UFOMap const& msg, TreeType& tree)
 //
 
 template <typename TreeType>
-bool ufoToMsg(TreeType const& tree, ufomap_msgs::UFOMap& msg, bool compress = false,
+bool ufoToMsg(TreeType const& tree, ufomap_msgs::msg::UFOMap& msg, bool compress = false,
               unsigned int depth = 0, int compression_acceleration_level = 1,
               int compression_level = 0)
 {
@@ -147,7 +149,7 @@ bool ufoToMsg(TreeType const& tree, ufomap_msgs::UFOMap& msg, bool compress = fa
 }
 
 template <typename TreeType, typename BoundingType>
-bool ufoToMsg(TreeType const& tree, ufomap_msgs::UFOMap& msg,
+bool ufoToMsg(TreeType const& tree, ufomap_msgs::msg::UFOMap& msg,
               BoundingType const& bounding_volume, bool compress = false,
               unsigned int depth = 0, int compression_acceleration_level = 1,
               int compression_level = 0)
@@ -159,7 +161,7 @@ bool ufoToMsg(TreeType const& tree, ufomap_msgs::UFOMap& msg,
 }
 
 template <typename TreeType>
-bool ufoToMsg(TreeType const& tree, ufomap_msgs::UFOMap& msg,
+bool ufoToMsg(TreeType const& tree, ufomap_msgs::msg::UFOMap& msg,
               ufo::geometry::BoundingVolume const& bounding_volume, bool compress = false,
               unsigned int depth = 0, int compression_acceleration_level = 1,
               int compression_level = 0)

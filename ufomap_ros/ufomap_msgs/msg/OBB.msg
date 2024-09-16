@@ -1,5 +1,5 @@
-Point center
+geometry_msgs/Point center
 
-Point half_size
+geometry_msgs/Point half_size
 
-Point rotation
+geometry_msgs/Point rotation
