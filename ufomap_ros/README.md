@@ -1,4 +1,4 @@
-# ufomap_ros
+# ufomap_ros2
 ufomap_ros is a ROS interface for UFOMap
 
 ## Table of Contents
@@ -12,3 +12,22 @@ ufomap_ros is a ROS interface for UFOMap
   * Contains RViz plugins to visualize UFOMap in RViz.
 * [ufomap_srvs](https://github.com/UnknownFreeOccupied/ufomap/tree/master/ufomap_ros/ufomap_srvs)
   * Contains UFOMap ROS services.
+
+## Build instructions
+1. Navigate to (or create) your ROS 2 workspace and create src directory:
+
+```
+cd /robot_ws
+mkdir src && cd src
+```
+
+2. Clone this repository:
+
+`git clone https://github.com/connortynan/ufomap_ros2`
+
+3. Install dependencies (maybe) and build from workspace directory:
+```
+cd ../
+rosdep install --from-paths src --ignore-src -r -y
+colcon build
+   ```
