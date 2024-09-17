@@ -1,19 +1,11 @@
 # UFOMap: An Efficient Probabilistic 3D Mapping Framework That Embraces the Unknown
 
-UFOMap is an efficient probabilistic 3D mapping framework with an explicit representation of unknown space.
-
-![UFOMap visualization](https://user-images.githubusercontent.com/6604166/111369561-7bcabd00-8697-11eb-8145-1409ef9709a0.png)  
-   UFOMap with occupied space as colored voxels and unknown space as white transparent voxels. The free space is not visualized here.
-
-Using UFOMap you will be able to create 3D volumetric maps, containing unknown/free/occupied space, similar to the one below in real-time. The UFOMap maps you create can be used for efficient path/trajectory planning, obstacle avoidance, reconstruction, and more.
-
-![Real-time Volumetric Mapping](https://user-images.githubusercontent.com/6604166/111788476-6c7a8800-88c0-11eb-9592-86609b9eb57c.png)
-   Colored UFOMap constructed in real-time (2 Hz) at 2 mm voxel size.
+UFOMap is an effienct probabilistic 3D mapping framework with an explicit representation of unknown space.
 
 ## Table of Contents
 Please see the [Wiki](https://github.com/UnknownFreeOccupied/ufomap/wiki) for how to install and use UFOMap.
-1. [Setup](https://github.com/UnknownFreeOccupied/ufomap/wiki/Setup)
-2. [Tutorials](https://github.com/UnknownFreeOccupied/ufomap/wiki/Tutorials)
+1. [Setup](https://github.com/UnknownFreeOccupied/ufomap/wiki/Tutorials)
+2. [Tutorials](https://github.com/UnknownFreeOccupied/ufomap/wiki/Setup)
 3. [ROS Tutorials](https://github.com/UnknownFreeOccupied/ufomap/wiki/ROS-Tutorials)
 4. [Advanced ROS Tutorials](https://github.com/UnknownFreeOccupied/ufomap/wiki/Advanced-ROS-Tutorials)
 5. [Performance](https://github.com/UnknownFreeOccupied/ufomap/wiki/Performance)
