@@ -16,17 +16,17 @@ find_package(ufomap REQUIRED)                     # UFOMap dependency
 set(MSG_FILES
   "msg/AABB.msg"
   "msg/BoundingVolume.msg"
-  "msg/Capsule.msg"
-  "msg/Cone.msg"
-  "msg/Cylinder.msg"
-  "msg/Ellipsoid.msg"
+  # "msg/Capsule.msg"
+  # "msg/Cone.msg"
+  # "msg/Cylinder.msg"
+  # "msg/Ellipsoid.msg"
   "msg/Frustum.msg"
   "msg/LineSegment.msg"
   "msg/OBB.msg"
   "msg/Plane.msg"
   "msg/Ray.msg"
   "msg/Sphere.msg"
-  "msg/Triangle.msg"
+  # "msg/Triangle.msg"
   "msg/UFOMap.msg"
   "msg/UFOMapMetaData.msg"
   "msg/UFOMapStamped.msg"
@@ -43,8 +43,7 @@ set(SRV_FILES
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${MSG_FILES}
   ${SRV_FILES}
-  DEPENDENCIES geometry_msgs std_msgs  # Add other dependencies as needed
-  SKIP_INSTALL
+  DEPENDENCIES geometry_msgs std_msgs
 )
 
 # Install headers
@@ -94,6 +93,12 @@ install(TARGETS ${PROJECT_NAME}_conversions
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
+)
+
+## Install headers
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION include/${PROJECT_NAME}
+  FILES_MATCHING PATTERN "*.h"
 )
 
 # Export package dependencies to ensure other packages can use the generated messages and services
