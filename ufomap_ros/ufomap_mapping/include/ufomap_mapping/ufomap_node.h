@@ -45,19 +45,20 @@
 // UFO
 #include <ufo/map/occupancy_map.h>
 #include <ufo/map/occupancy_map_color.h>
-#include <ufomap_mapping/ServerConfig.h>
-#include <ufomap_srvs/ClearVolume.h>
-#include <ufomap_srvs/GetMap.h>
-#include <ufomap_srvs/Reset.h>
-#include <ufomap_srvs/SaveMap.h>
+
+#include <ufomap_msgs/srv/clear_volume.hpp>
+#include <ufomap_msgs/srv/get_map.hpp>
+#include <ufomap_msgs/srv/reset.hpp>
+#include <ufomap_msgs/srv/save_map.hpp>
 
 // ROS
-#include <diagnostic_msgs/DiagnosticStatus.h>
-#include <dynamic_reconfigure/server.h>
-#include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
 #include <tf2_ros/transform_listener.h>
-#include <tf2_sensor_msgs/tf2_sensor_msgs.h>
+
+#include <diagnostic_msgs/msg/diagnostic_status.hpp>
+#include <rcl_interfaces/msg/set_parameters_result.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <tf2_sensor_msgs/tf2_sensor_msgs.hpp>
 
 // STD
 #include <future>
@@ -66,10 +67,10 @@
 
 namespace ufomap_mapping
 {
-class Server
+class UFOMapNode : public rclcpp::Node
 {
  public:
-	Server(ros::NodeHandle &nh, ros::NodeHandle &nh_priv);
+	UFOMapNode();
 
  private:
 	void cloudCallback(sensor_msgs::PointCloud2::ConstPtr const &msg);
@@ -92,40 +93,36 @@ class Server
 
 	void timerCallback(ros::TimerEvent const &event);
 
-	void configCallback(ufomap_mapping::ServerConfig &config, uint32_t level);
+	// Callback for parameter updates
+	rcl_interfaces::msg::SetParametersResult parameterCallback(
+	    const std::vector<rclcpp::Parameter> &params);
 
  private:
-	//
-	// ROS parameters
-	//
-
-	// Node handles
-	ros::NodeHandle &nh_;
-	ros::NodeHandle &nh_priv_;
-
 	// Subscribers
-	ros::Subscriber cloud_sub_;
+	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_;
 	unsigned int cloud_in_queue_size_;
 
 	// Publishers
-	std::vector<ros::Publisher> map_pub_;
+
+	std::vector<rclcpp::Publisher<ufomap_msgs::msg::UFOMapStamped>::SharedPtr> map_pub_;
 	unsigned int map_queue_size_;
-	ros::Timer pub_timer_;
+	rclcpp::TimerBase::SharedPtr pub_timer_;
 	double pub_rate_;
-	ros::Duration update_rate_;
-	ros::Time last_update_time_;
-	ros::Publisher info_pub_;
+	double pub_rate_;
+	rclcpp::Duration update_rate_;
+	rclcpp::Time last_update_time_;
+	rclcpp::Publisher<diagnostic_msgs::msg::DiagnosticStatus>::SharedPtr info_pub_;
 
 	// Services
-	ros::ServiceServer get_map_server_;
-	ros::ServiceServer clear_volume_server_;
-	ros::ServiceServer reset_server_;
-	ros::ServiceServer save_map_server_;
+	rclcpp::Service<ufomap_msgs::srv::GetMap>::SharedPtr get_map_server_;
+	rclcpp::Service<ufomap_msgs::srv::ClearVolume>::SharedPtr clear_volume_server_;
+	rclcpp::Service<ufomap_msgs::srv::Reset>::SharedPtr reset_server_;
+	rclcpp::Service<ufomap_msgs::srv::SaveMap>::SharedPtr save_map_server_;
 
 	// TF2
 	tf2_ros::Buffer tf_buffer_;
-	tf2_ros::TransformListener tf_listener_;
-	ros::Duration transform_timeout_;
+	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+	rclcpp::Duration transform_timeout_;
 
 	// Dynamic reconfigure
 	dynamic_reconfigure::Server<ufomap_mapping::ServerConfig> cs_;

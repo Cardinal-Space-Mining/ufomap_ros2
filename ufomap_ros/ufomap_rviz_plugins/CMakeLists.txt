@@ -66,9 +66,8 @@ target_compile_options(${PROJECT_NAME}
 )
 
 ## Install headers
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION include/${PROJECT_NAME}
-  FILES_MATCHING PATTERN "*.h"
+install(DIRECTORY include
+  DESTINATION include
 )
 
 ## Install the library

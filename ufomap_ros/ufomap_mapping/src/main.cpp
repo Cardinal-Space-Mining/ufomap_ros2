@@ -40,27 +40,17 @@
  */
 
 // UFO
-#include <ufomap_mapping/server.h>
+#include <ufomap_mapping/ufomap_node.h>
 
 // ROS
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 int main(int argc, char** argv)
 {
-	ros::init(argc, argv, "ufomap_mapping_server");
+	rclcpp::init(argc, argv);
 
-	ros::NodeHandle nh;
-	ros::NodeHandle nh_priv("~");
+	rclcpp::spin(std::make_shared<UFOMapNode>());
+	rclcpp::shutdown();
 
-	int num_workers = nh_priv.param("num_workers", 1);
-
-	ufomap_mapping::Server server(nh, nh_priv);
-
-	if (1 < num_workers) {
-		ros::MultiThreadedSpinner spinner(num_workers);
-		spinner.spin();
-	} else {
-		ros::spin();
-	}
 	return 0;
 }

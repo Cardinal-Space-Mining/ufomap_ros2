@@ -40,10 +40,11 @@
  */
 
 // UFO
-#include <ufomap_mapping/server.h>
-#include <ufomap_msgs/UFOMapStamped.h>
+#include <ufomap_mapping/ufomap_node.h>
 #include <ufomap_msgs/conversions.h>
 #include <ufomap_ros/conversions.h>
+
+#include <ufomap_msgs/msg/ufo_map_stamped.hpp>
 
 // STD
 #include <chrono>
