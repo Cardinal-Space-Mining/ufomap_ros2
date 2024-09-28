@@ -22,7 +22,6 @@ find_package(tf2_sensor_msgs REQUIRED)
 find_package(diagnostic_msgs REQUIRED)
 
 find_package(ufomap_msgs REQUIRED)
-find_package(ufomap_ros REQUIRED)
 find_package(ufomap REQUIRED)
 
 add_executable(${PROJECT_NAME}_node 
@@ -40,7 +39,6 @@ ament_target_dependencies(${PROJECT_NAME}_node
   tf2_sensor_msgs
   diagnostic_msgs
   ufomap_msgs
-  ufomap_ros
   ufomap
 )
 

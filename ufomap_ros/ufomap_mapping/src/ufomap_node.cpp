@@ -40,9 +40,8 @@
  */
 
 // UFO
+#include <ufomap_mapping/conversions.h>
 #include <ufomap_mapping/ufomap_node.h>
-#include <ufomap_msgs/conversions.h>
-#include <ufomap_ros/conversions.h>
 
 #include <ufomap_msgs/msg/ufo_map_stamped.hpp>
 

@@ -46,12 +46,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   DEPENDENCIES geometry_msgs std_msgs
 )
 
-# Install headers
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION include/${PROJECT_NAME}
-  FILES_MATCHING PATTERN "*.h"
-)
-
 # Install message and service definitions
 install(DIRECTORY msg/ srv/
   DESTINATION share/${PROJECT_NAME}
@@ -63,43 +57,7 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}  # For generated message headers
 )
 
-# Create the conversion library
-add_library(${PROJECT_NAME}_conversions STATIC src/conversions.cpp)
-
-# Specify dependencies for the conversion library
-ament_target_dependencies(${PROJECT_NAME}_conversions
-  rclcpp
-  ufomap
-  geometry_msgs
-  std_msgs
-)
-
 rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
-target_link_libraries(${PROJECT_NAME}_conversions "${cpp_typesupport_target}")
-
-
-include_directories(${PROJECT_NAME}_conversions
-  include
-  ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp  # This should point to where the headers are generated
-)
-
-# Specify other libraries to link with the conversion library
-target_link_libraries(${PROJECT_NAME}_conversions 
-  UFO::Map
-)
-
-# Install the library
-install(TARGETS ${PROJECT_NAME}_conversions
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin
-)
-
-## Install headers
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION include/${PROJECT_NAME}
-  FILES_MATCHING PATTERN "*.h"
-)
 
 # Export package dependencies to ensure other packages can use the generated messages and services
 ament_export_dependencies(rosidl_default_runtime)
