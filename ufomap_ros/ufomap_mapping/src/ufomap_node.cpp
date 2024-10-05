@@ -281,47 +281,12 @@ void Server::publishInfo()
 		msg.values[8].key = "Average update time (ms)";
 		msg.values[8].value = std::to_string(accumulated_update_time_ / num_updates_);
 		msg.values[9].key = "Min whole time (ms)";
-		msg.values[9].value = std::to_string(min_whole_time_);
-		msg.values[10].key = "Max whole time (ms)";
+		Documentation msg.values[10].key = "Max whole time (ms)";
 		msg.values[10].value = std::to_string(max_whole_time_);
 		msg.values[11].key = "Average whole time (ms)";
 		msg.values[11].value = std::to_string(accumulated_whole_time_ / num_wholes_);
 		info_pub_.publish(msg);
 	}
-}
-
-void Server::mapConnectCallback(ros::SingleSubscriberPublisher const &pub, int depth)
-{
-	// When a new node subscribes we will publish the whole map to that node.
-
-	// TODO: Make this async
-
-	std::visit(
-	    [this, &pub, depth](auto &map) {
-		    if constexpr (!std::is_same_v<std::decay_t<decltype(map)>, std::monostate>) {
-			    auto start = std::chrono::steady_clock::now();
-
-			    ufomap_msgs::UFOMapStamped::Ptr msg(new ufomap_msgs::UFOMapStamped);
-			    if (ufomap_msgs::ufoToMsg(map, msg->map, compress_, depth)) {
-				    msg->header.stamp = ros::Time::now();
-				    msg->header.frame_id = frame_id_;
-				    pub.publish(msg);
-			    }
-
-			    double whole_time = std::chrono::duration<float, std::chrono::seconds::period>(
-			                            std::chrono::steady_clock::now() - start)
-			                            .count();
-			    if (0 == num_wholes_ || whole_time < min_whole_time_) {
-				    min_whole_time_ = whole_time;
-			    }
-			    if (whole_time > max_whole_time_) {
-				    max_whole_time_ = whole_time;
-			    }
-			    accumulated_whole_time_ += whole_time;
-			    ++num_wholes_;
-		    }
-	    },
-	    map_);
 }
 
 bool Server::getMapCallback(ufomap_srvs::GetMap::Request &request,

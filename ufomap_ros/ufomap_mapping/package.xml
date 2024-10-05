@@ -26,7 +26,6 @@
   <depend>diagnostic_msgs</depend>
 
   <depend>ufomap_msgs</depend>
-  <depend>ufomap_ros</depend>
 
   <!-- Non-ROS dependencies -->
   <depend>ufomap</depend>

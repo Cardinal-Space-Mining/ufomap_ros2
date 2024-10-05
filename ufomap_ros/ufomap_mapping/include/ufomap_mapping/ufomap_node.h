@@ -77,19 +77,17 @@ class UFOMapNode : public rclcpp::Node
 
 	void publishInfo();
 
-	void mapConnectCallback(ros::SingleSubscriberPublisher const &pub, int depth);
+	bool getMapCallback(ufomap_msgs::srv::GetMap::Request &request,
+	                    ufomap_msgs::srv::GetMap::Response &response);
 
-	bool getMapCallback(ufomap_srvs::GetMap::Request &request,
-	                    ufomap_srvs::GetMap::Response &response);
+	bool clearVolumeCallback(ufomap_msgs::srv::ClearVolume::Request &request,
+	                         ufomap_msgs::srv::ClearVolume::Response &response);
 
-	bool clearVolumeCallback(ufomap_srvs::ClearVolume::Request &request,
-	                         ufomap_srvs::ClearVolume::Response &response);
+	bool resetCallback(ufomap_msgs::srv::Reset::Request &request,
+	                   ufomap_msgs::srv::Reset::Response &response);
 
-	bool resetCallback(ufomap_srvs::Reset::Request &request,
-	                   ufomap_srvs::Reset::Response &response);
-
-	bool saveMapCallback(ufomap_srvs::SaveMap::Request &request,
-	                     ufomap_srvs::SaveMap::Response &response);
+	bool saveMapCallback(ufomap_msgs::srv::SaveMap::Request &request,
+	                     ufomap_msgs::srv::SaveMap::Response &response);
 
 	void timerCallback(ros::TimerEvent const &event);
 
