@@ -46,6 +46,7 @@
 #include <ufo/map/occupancy_map.h>
 #include <ufo/map/occupancy_map_color.h>
 
+#include <ufomap_msgs/msg/ufo_map_stamped.hpp>
 #include <ufomap_msgs/srv/clear_volume.hpp>
 #include <ufomap_msgs/srv/get_map.hpp>
 #include <ufomap_msgs/srv/reset.hpp>
@@ -53,6 +54,7 @@
 
 // ROS
 #include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
 
 #include <diagnostic_msgs/msg/diagnostic_status.hpp>
 #include <rcl_interfaces/msg/set_parameters_result.hpp>
@@ -73,7 +75,7 @@ class UFOMapNode : public rclcpp::Node
 	UFOMapNode();
 
  private:
-	void cloudCallback(sensor_msgs::PointCloud2::ConstPtr const &msg);
+	void cloudCallback(const sensor_msgs::msg::PointCloud2 &msg);
 
 	void publishInfo();
 
@@ -89,7 +91,7 @@ class UFOMapNode : public rclcpp::Node
 	bool saveMapCallback(ufomap_msgs::srv::SaveMap::Request &request,
 	                     ufomap_msgs::srv::SaveMap::Response &response);
 
-	void timerCallback(ros::TimerEvent const &event);
+	void timerCallback();
 
 	// Callback for parameter updates
 	rcl_interfaces::msg::SetParametersResult parameterCallback(
@@ -105,7 +107,6 @@ class UFOMapNode : public rclcpp::Node
 	std::vector<rclcpp::Publisher<ufomap_msgs::msg::UFOMapStamped>::SharedPtr> map_pub_;
 	unsigned int map_queue_size_;
 	rclcpp::TimerBase::SharedPtr pub_timer_;
-	double pub_rate_;
 	double pub_rate_;
 	rclcpp::Duration update_rate_;
 	rclcpp::Time last_update_time_;
@@ -123,7 +124,7 @@ class UFOMapNode : public rclcpp::Node
 	rclcpp::Duration transform_timeout_;
 
 	// Dynamic reconfigure
-	dynamic_reconfigure::Server<ufomap_mapping::ServerConfig> cs_;
+	// dynamic_reconfigure::Server<ufomap_mapping::ServerConfig> cs_;
 
 	//
 	// UFO Parameters

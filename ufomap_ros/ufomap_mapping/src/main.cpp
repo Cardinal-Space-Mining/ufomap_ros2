@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 {
 	rclcpp::init(argc, argv);
 
-	rclcpp::spin(std::make_shared<UFOMapNode>());
+	rclcpp::spin(std::make_shared<ufomap_mapping::UFOMapNode>());
 	rclcpp::shutdown();
 
 	return 0;

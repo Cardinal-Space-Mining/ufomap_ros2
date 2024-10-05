@@ -52,24 +52,36 @@
 
 namespace ufomap_mapping
 {
-Server::Server(ros::NodeHandle &nh, ros::NodeHandle &nh_priv)
-    : nh_(nh), nh_priv_(nh_priv), tf_listener_(tf_buffer_), cs_(nh_priv)
+UFOMapNode::UFOMapNode()
+    : Node("ufo-map"),
+    get_map_server_(this->create_service<ufomap_msgs::srv::GetMap>("get_map", std::bind(&UFOMapNode::getMapCallback, this, std::placeholders::_1, std::placeholders::_2))),
+    transform_timeout_(1, 0)
+    // tf_listener_(tf_buffer_)
 {
+
+    get_map_server_ = nh_priv_.advertiseService("get_map", &UFOMapNode::getMapCallback, this);
+    clear_volume_server_ =
+        nh_priv_.advertiseService("clear_volume", &UFOMapNode::clearVolumeCallback, this);
+    reset_server_ = nh_priv_.advertiseService("reset", &UFOMapNode::resetCallback, this);
+    save_map_server_ =
+        nh_priv_.advertiseService("save_map", &UFOMapNode::saveMapCallback, this);
 	// Set up map
-	double resolution = nh_priv_.param("resolution", 0.05);
-	ufo::map::DepthType depth_levels = nh_priv_.param("depth_levels", 16);
+	// double resolution = nh_priv_.param("resolution", 0.05);
+    static constexpr double resolution = .05;
+	// ufo::map::DepthType depth_levels = nh_priv_.param("depth_levels", 16);
+    static constexpr double depth_levels = 16;
 
 	// Automatic pruning is disabled so we can work in multiple threads for subscribers,
 	// services and publishers
-	if (nh_priv_.param("color_map", false)) {
-		map_.emplace<ufo::map::OccupancyMapColor>(resolution, depth_levels, false);
-	} else {
+	// if (nh_priv_.param("color_map", false)) {
+	// 	map_.emplace<ufo::map::OccupancyMapColor>(resolution, depth_levels, false);
+	// } else {
 		map_.emplace<ufo::map::OccupancyMap>(resolution, depth_levels, false);
-	}
+	// }
 
 	// Enable min/max change detection
 	std::visit(
-	    [this](auto &map) {
+	    [](auto &map) {
 		    if constexpr (!std::is_same_v<std::decay_t<decltype(map)>, std::monostate>) {
 			    map.enableMinMaxChangeDetection(true);
 		    }
@@ -77,21 +89,16 @@ Server::Server(ros::NodeHandle &nh, ros::NodeHandle &nh_priv)
 	    map_);
 
 	// Set up dynamic reconfigure server
-	cs_.setCallback(boost::bind(&Server::configCallback, this, _1, _2));
+	// cs_.setCallback(boost::bind(&UFOMapNode::configCallback, this, _1, _2));
 
 	// Set up publisher
-	info_pub_ = nh_priv_.advertise<diagnostic_msgs::DiagnosticStatus>("info", 10, false);
+	// info_pub_ = nh_priv_.advertise<diagnostic_msgs::DiagnosticStatus>("info", 10, false);
 
 	// Enable services
-	get_map_server_ = nh_priv_.advertiseService("get_map", &Server::getMapCallback, this);
-	clear_volume_server_ =
-	    nh_priv_.advertiseService("clear_volume", &Server::clearVolumeCallback, this);
-	reset_server_ = nh_priv_.advertiseService("reset", &Server::resetCallback, this);
-	save_map_server_ =
-	    nh_priv_.advertiseService("save_map", &Server::saveMapCallback, this);
+    
 }
 
-void Server::cloudCallback(sensor_msgs::PointCloud2::ConstPtr const &msg)
+void UFOMapNode::cloudCallback(const sensor_msgs::msg::PointCloud2 &msg)
 {
 	ufo::math::Pose6 transform;
 	try {
@@ -230,7 +237,7 @@ void Server::cloudCallback(sensor_msgs::PointCloud2::ConstPtr const &msg)
 	    map_);
 }
 
-void Server::publishInfo()
+void UFOMapNode::publishInfo()
 {
 	if (verbose_) {
 		printf("\nTimings:\n");
@@ -289,8 +296,8 @@ void Server::publishInfo()
 	}
 }
 
-bool Server::getMapCallback(ufomap_srvs::GetMap::Request &request,
-                            ufomap_srvs::GetMap::Response &response)
+bool UFOMapNode::getMapCallback(ufomap_msgs::srv::GetMap::Request &request,
+                            ufomap_msgs::srv::GetMap::Response &response)
 {
 	std::visit(
 	    [this, &request, &response](auto &map) {
@@ -307,8 +314,8 @@ bool Server::getMapCallback(ufomap_srvs::GetMap::Request &request,
 	return true;
 }
 
-bool Server::clearVolumeCallback(ufomap_srvs::ClearVolume::Request &request,
-                                 ufomap_srvs::ClearVolume::Response &response)
+bool UFOMapNode::clearVolumeCallback(ufomap_msgs::srv::ClearVolume::Request &request,
+                                 ufomap_msgs::srv::ClearVolume::Response &response)
 {
 	std::visit(
 	    [this, &request, &response](auto &map) {
@@ -327,8 +334,8 @@ bool Server::clearVolumeCallback(ufomap_srvs::ClearVolume::Request &request,
 	return true;
 }
 
-bool Server::resetCallback(ufomap_srvs::Reset::Request &request,
-                           ufomap_srvs::Reset::Response &response)
+bool UFOMapNode::resetCallback(ufomap_msgs::srv::Reset::Request &request,
+                           ufomap_msgs::srv::Reset::Response &response)
 {
 	std::visit(
 	    [this, &request, &response](auto &map) {
@@ -343,8 +350,8 @@ bool Server::resetCallback(ufomap_srvs::Reset::Request &request,
 	return true;
 }
 
-bool Server::saveMapCallback(ufomap_srvs::SaveMap::Request &request,
-                             ufomap_srvs::SaveMap::Response &response)
+bool UFOMapNode::saveMapCallback(ufomap_msgs::srv::SaveMap::Request &request,
+                             ufomap_msgs::srv::SaveMap::Response &response)
 {
 	std::visit(
 	    [this, &request, &response](auto &map) {
@@ -361,7 +368,7 @@ bool Server::saveMapCallback(ufomap_srvs::SaveMap::Request &request,
 	return true;
 }
 
-void Server::timerCallback(ros::TimerEvent const &event)
+void UFOMapNode::timerCallback(ros::TimerEvent const &event)
 {
 	std_msgs::Header header;
 	header.stamp = ros::Time::now();
@@ -404,7 +411,7 @@ void Server::timerCallback(ros::TimerEvent const &event)
 	publishInfo();
 }
 
-void Server::configCallback(ufomap_mapping::ServerConfig &config, uint32_t level)
+void UFOMapNode::configCallback(ufomap_mapping::UFOMapNodeConfig &config, uint32_t level)
 {
 	// Read parameters
 	frame_id_ = config.frame_id;
@@ -449,7 +456,7 @@ void Server::configCallback(ufomap_mapping::ServerConfig &config, uint32_t level
 			std::string final_topic = i == 0 ? "map" : "map_depth_" + std::to_string(i);
 			map_pub_[i] = nh_priv_.advertise<ufomap_msgs::UFOMapStamped>(
 			    final_topic, map_queue_size_,
-			    boost::bind(&Server::mapConnectCallback, this, _1, i),
+			    boost::bind(&UFOMapNode::mapConnectCallback, this, _1, i),
 			    ros::SubscriberStatusCallback(), ros::VoidConstPtr(), config.map_latch);
 		}
 	}
@@ -458,7 +465,7 @@ void Server::configCallback(ufomap_mapping::ServerConfig &config, uint32_t level
 	if (!cloud_sub_ || cloud_in_queue_size_ != config.cloud_in_queue_size) {
 		cloud_in_queue_size_ = config.cloud_in_queue_size;
 		cloud_sub_ =
-		    nh_.subscribe("cloud_in", cloud_in_queue_size_, &Server::cloudCallback, this);
+		    nh_.subscribe("cloud_in", cloud_in_queue_size_, &UFOMapNode::cloudCallback, this);
 	}
 
 	// Set up timer
@@ -466,7 +473,7 @@ void Server::configCallback(ufomap_mapping::ServerConfig &config, uint32_t level
 		pub_rate_ = config.pub_rate;
 		if (0 < pub_rate_) {
 			pub_timer_ =
-			    nh_priv_.createTimer(ros::Rate(pub_rate_), &Server::timerCallback, this);
+			    nh_priv_.createTimer(ros::Rate(pub_rate_), &UFOMapNode::timerCallback, this);
 		} else {
 			pub_timer_.stop();
 		}
