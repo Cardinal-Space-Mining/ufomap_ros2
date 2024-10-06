@@ -52,32 +52,58 @@
 
 namespace ufomap_mapping
 {
-UFOMapNode::UFOMapNode()
-    : Node("ufo-map"),
-    get_map_server_(this->create_service<ufomap_msgs::srv::GetMap>("get_map", std::bind(&UFOMapNode::getMapCallback, this, std::placeholders::_1, std::placeholders::_2))),
-    transform_timeout_(1, 0)
-    // tf_listener_(tf_buffer_)
+UFOMapNode::UFOMapNode() : Node("ufomap_node")
 {
+	tf_buffer_ = std::make_unique<tf2_ros::Buffer>(this->get_clock());
+	tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
-    get_map_server_ = nh_priv_.advertiseService("get_map", &UFOMapNode::getMapCallback, this);
-    clear_volume_server_ =
-        nh_priv_.advertiseService("clear_volume", &UFOMapNode::clearVolumeCallback, this);
-    reset_server_ = nh_priv_.advertiseService("reset", &UFOMapNode::resetCallback, this);
-    save_map_server_ =
-        nh_priv_.advertiseService("save_map", &UFOMapNode::saveMapCallback, this);
+	// Dynamically reconfigurable parameters (params.yaml)
+	this->declare_parameter<std::string>("frame_id", "map");
+	this->declare_parameter<double>("max_range", -1.0);
+	this->declare_parameter<int>("insert_depth", 0);
+	this->declare_parameter<int>("insert_depth", 0);
+	this->declare_parameter<bool>("simple_ray_casting", false);
+	this->declare_parameter<int>("early_stopping", 0);
+	this->declare_parameter<bool>("async", true);
+	this->declare_parameter<bool>("clear_robot", false);
+	this->declare_parameter<std::string>("robot_frame_id", "base_link");
+	this->declare_parameter<double>("robot_height", 0.2);
+	this->declare_parameter<double>("robot_radius", 0.5);
+	this->declare_parameter<int>("clearing_depth", 0);
+	this->declare_parameter<bool>("compress", false);
+	this->declare_parameter<bool>("update_part_of_map", true);
+	this->declare_parameter<double>("update_rate", 0.0);
+	this->declare_parameter<int>("publish_depth", 4);
+	this->declare_parameter<double>("prob_hit", 0.7);
+	this->declare_parameter<double>("prob_miss", 0.4);
+	this->declare_parameter<double>("clamping_thres_min", 0.1192);
+	this->declare_parameter<double>("clamping_thres_max", 0.971);
+	this->declare_parameter<double>("pub_rate", 0.0);
+	this->declare_parameter<double>("transform_timeout", 0.1);
+	this->declare_parameter<int>("map_queue_size", 10);
+	this->declare_parameter<int>("cloud_in_queue_size", 10);
+	// this->declare_parameter<bool>("map_latch", false);
+	this->declare_parameter<bool>("verbose", false);
+
+	this->initParams();
+
+	// Launch file parameters (launch.py)
+	this->declare_parameter<double>("resolution", 0.05);
+	this->declare_parameter<int>("depth_levels", 16);
+	this->declare_parameter<int>("num_workers", 1);
+	this->declare_parameter<bool>("color_map", true);
+
 	// Set up map
-	// double resolution = nh_priv_.param("resolution", 0.05);
-    static constexpr double resolution = .05;
-	// ufo::map::DepthType depth_levels = nh_priv_.param("depth_levels", 16);
-    static constexpr double depth_levels = 16;
+	double resolution = this->get_parameter("resolution").as_double();
+	ufo::map::DepthType depth_levels = this->get_parameter("depth_levels").as_int();
 
 	// Automatic pruning is disabled so we can work in multiple threads for subscribers,
 	// services and publishers
-	// if (nh_priv_.param("color_map", false)) {
-	// 	map_.emplace<ufo::map::OccupancyMapColor>(resolution, depth_levels, false);
-	// } else {
+	if (this->get_parameter("color_map").as_bool()) {
+		map_.emplace<ufo::map::OccupancyMapColor>(resolution, depth_levels, false);
+	} else {
 		map_.emplace<ufo::map::OccupancyMap>(resolution, depth_levels, false);
-	// }
+	}
 
 	// Enable min/max change detection
 	std::visit(
@@ -89,26 +115,39 @@ UFOMapNode::UFOMapNode()
 	    map_);
 
 	// Set up dynamic reconfigure server
-	// cs_.setCallback(boost::bind(&UFOMapNode::configCallback, this, _1, _2));
+	this->add_on_set_parameters_callback(
+	    std::bind(&UFOMapNode::parameterCallback, this, std::placeholders::_1));
 
 	// Set up publisher
-	// info_pub_ = nh_priv_.advertise<diagnostic_msgs::DiagnosticStatus>("info", 10, false);
+	info_pub_ = this->create_publisher<diagnostic_msgs::msg::DiagnosticStatus>("info", 10);
 
 	// Enable services
-    
+	get_map_server_ = this->create_service<ufomap_msgs::srv::GetMap>(
+	    "get_map", std::bind(&UFOMapNode::getMapCallback, this, std::placeholders::_1,
+	                         std::placeholders::_2));
+	clear_volume_server_ = this->create_service<ufomap_msgs::srv::ClearVolume>(
+	    "clear_volume", std::bind(&UFOMapNode::clearVolumeCallback, this,
+	                              std::placeholders::_1, std::placeholders::_2));
+	reset_server_ = this->create_service<ufomap_msgs::srv::Reset>(
+	    "reset", std::bind(&UFOMapNode::resetCallback, this, std::placeholders::_1,
+	                       std::placeholders::_2));
+	save_map_server_ = this->create_service<ufomap_msgs::srv::SaveMap>(
+	    "save_map", std::bind(&UFOMapNode::saveMapCallback, this, std::placeholders::_1,
+	                          std::placeholders::_2));
 }
 
 void UFOMapNode::cloudCallback(const sensor_msgs::msg::PointCloud2 &msg)
 {
 	ufo::math::Pose6 transform;
 	try {
-		transform =
-		    ufomap_ros::rosToUfo(tf_buffer_
-		                             .lookupTransform(frame_id_, msg->header.frame_id,
-		                                              msg->header.stamp, transform_timeout_)
-		                             .transform);
+		transform = ufomap_ros_conversion::rosToUfo(
+		    tf_buffer_
+		        ->lookupTransform(frame_id_, msg.header.frame_id, msg.header.stamp,
+		                          transform_timeout_)
+		        .transform);
 	} catch (tf2::TransformException &ex) {
-		ROS_WARN_THROTTLE(1, "%s", ex.what());
+		auto &clk = *this->get_clock();
+		RCLCPP_WARN_THROTTLE(this->get_logger(), clk, 1000, "%s", ex.what());
 		return;
 	}
 
@@ -119,7 +158,7 @@ void UFOMapNode::cloudCallback(const sensor_msgs::msg::PointCloud2 &msg)
 
 			    // Update map
 			    ufo::map::PointCloudColor cloud;
-			    ufomap_ros::rosToUfo(*msg, cloud);
+			    ufomap_ros_conversion::rosToUfo(msg, cloud);
 			    cloud.transform(transform, true);
 
 			    map.insertPointCloudDiscrete(transform.translation(), cloud, max_range_,
@@ -145,13 +184,14 @@ void UFOMapNode::cloudCallback(const sensor_msgs::msg::PointCloud2 &msg)
 				    start = std::chrono::steady_clock::now();
 
 				    try {
-					    transform = ufomap_ros::rosToUfo(
+					    transform = ufomap_ros_conversion::rosToUfo(
 					        tf_buffer_
-					            .lookupTransform(frame_id_, robot_frame_id_, msg->header.stamp,
-					                             transform_timeout_)
+					            ->lookupTransform(frame_id_, robot_frame_id_, msg.header.stamp,
+					                              transform_timeout_)
 					            .transform);
 				    } catch (tf2::TransformException &ex) {
-					    ROS_WARN_THROTTLE(1, "%s", ex.what());
+					    auto &clk = *this->get_clock();
+					    RCLCPP_WARN_THROTTLE(this->get_logger(), clk, 1000, "%s", ex.what());
 					    return;
 				    }
 
@@ -174,10 +214,13 @@ void UFOMapNode::cloudCallback(const sensor_msgs::msg::PointCloud2 &msg)
 				    ++num_clears_;
 			    }
 
+			    rclcpp::Time header_stamp_(msg.header.stamp.sec, msg.header.stamp.nanosec);
 			    // Publish update
 			    if (!map_pub_.empty() && update_part_of_map_ && map.validMinMaxChange() &&
-			        (!last_update_time_.isValid() ||
-			         (msg->header.stamp - last_update_time_) >= update_rate_)) {
+			        (last_update_time_.seconds() == 0 &&
+			             last_update_time_.nanoseconds() ==
+			                 0 ||  // Check if last update time is invalid
+			         (header_stamp_ - last_update_time_) >= update_rate_)) {
 				    bool can_update = true;
 				    if (update_async_handler_.valid()) {
 					    can_update = std::future_status::ready ==
@@ -185,7 +228,7 @@ void UFOMapNode::cloudCallback(const sensor_msgs::msg::PointCloud2 &msg)
 				    }
 
 				    if (can_update) {
-					    last_update_time_ = msg->header.stamp;
+					    last_update_time_ = header_stamp_;
 					    start = std::chrono::steady_clock::now();
 
 					    ufo::geometry::AABB aabb(map.minChange(), map.maxChange());
@@ -193,21 +236,21 @@ void UFOMapNode::cloudCallback(const sensor_msgs::msg::PointCloud2 &msg)
 					    map.resetMinMaxChangeDetection();
 
 					    update_async_handler_ = std::async(
-					        std::launch::async, [this, aabb, stamp = msg->header.stamp]() {
+					        std::launch::async, [this, aabb, stamp = msg.header.stamp]() {
 						        std::visit(
 						            [this, &aabb, stamp](auto &map) {
 							            if constexpr (!std::is_same_v<std::decay_t<decltype(map)>,
 							                                          std::monostate>) {
 								            for (int i = 0; i < map_pub_.size(); ++i) {
-									            if (map_pub_[i] && (0 < map_pub_[i].getNumSubscribers() ||
-									                                map_pub_[i].isLatched())) {
-										            ufomap_msgs::UFOMapStamped::Ptr msg(
-										                new ufomap_msgs::UFOMapStamped);
-										            if (ufomap_msgs::ufoToMsg(map, msg->map, aabb, compress_,
-										                                      i)) {
+									            if (map_pub_[i] &&
+									                (0 < map_pub_[i]->get_subscription_count())) {
+										            auto msg =
+										                std::make_shared<ufomap_msgs::msg::UFOMapStamped>();
+										            if (ufomap_ros_conversion::ufoToMsg(map, msg->map, aabb,
+										                                                compress_, i)) {
 											            msg->header.stamp = stamp;
 											            msg->header.frame_id = frame_id_;
-											            map_pub_[i].publish(msg);
+											            map_pub_[i]->publish(*msg);
 										            }
 									            }
 								            }
@@ -263,9 +306,9 @@ void UFOMapNode::publishInfo()
 		}
 	}
 
-	if (info_pub_ && 0 < info_pub_.getNumSubscribers()) {
-		diagnostic_msgs::DiagnosticStatus msg;
-		msg.level = diagnostic_msgs::DiagnosticStatus::OK;
+	if (info_pub_ && 0 < info_pub_->get_subscription_count()) {
+		diagnostic_msgs::msg::DiagnosticStatus msg;
+		msg.level = diagnostic_msgs::msg::DiagnosticStatus::OK;
 		msg.name = "UFOMap mapping timings";
 		msg.values.resize(12);
 		msg.values[0].key = "Min integration time (ms)";
@@ -288,106 +331,110 @@ void UFOMapNode::publishInfo()
 		msg.values[8].key = "Average update time (ms)";
 		msg.values[8].value = std::to_string(accumulated_update_time_ / num_updates_);
 		msg.values[9].key = "Min whole time (ms)";
-		Documentation msg.values[10].key = "Max whole time (ms)";
+		msg.values[10].key = "Max whole time (ms)";
 		msg.values[10].value = std::to_string(max_whole_time_);
 		msg.values[11].key = "Average whole time (ms)";
 		msg.values[11].value = std::to_string(accumulated_whole_time_ / num_wholes_);
-		info_pub_.publish(msg);
+		info_pub_->publish(msg);
 	}
 }
 
-bool UFOMapNode::getMapCallback(ufomap_msgs::srv::GetMap::Request &request,
-                            ufomap_msgs::srv::GetMap::Response &response)
+bool UFOMapNode::getMapCallback(
+    const std::shared_ptr<ufomap_msgs::srv::GetMap::Request> request,
+    std::shared_ptr<ufomap_msgs::srv::GetMap::Response> response)
 {
 	std::visit(
 	    [this, &request, &response](auto &map) {
 		    if constexpr (!std::is_same_v<std::decay_t<decltype(map)>, std::monostate>) {
 			    ufo::geometry::BoundingVolume bv =
-			        ufomap_msgs::msgToUfo(request.bounding_volume);
-			    response.success = ufomap_msgs::ufoToMsg(map, response.map, bv,
-			                                             request.compress, request.depth);
+			        ufomap_ros_conversion::msgToUfo(request->bounding_volume);
+			    response->success = ufomap_ros_conversion::ufoToMsg(
+			        map, response->map, bv, request->compress, request->depth);
 		    } else {
-			    response.success = false;
+			    response->success = false;
 		    }
 	    },
 	    map_);
 	return true;
 }
 
-bool UFOMapNode::clearVolumeCallback(ufomap_msgs::srv::ClearVolume::Request &request,
-                                 ufomap_msgs::srv::ClearVolume::Response &response)
+bool UFOMapNode::clearVolumeCallback(
+    const std::shared_ptr<ufomap_msgs::srv::ClearVolume::Request> request,
+    std::shared_ptr<ufomap_msgs::srv::ClearVolume::Response> response)
 {
 	std::visit(
 	    [this, &request, &response](auto &map) {
 		    if constexpr (!std::is_same_v<std::decay_t<decltype(map)>, std::monostate>) {
 			    ufo::geometry::BoundingVolume bv =
-			        ufomap_msgs::msgToUfo(request.bounding_volume);
+			        ufomap_ros_conversion::msgToUfo(request->bounding_volume);
 			    for (auto &b : bv) {
-				    map.setValueVolume(b, map.getClampingThresMin(), request.depth);
+				    map.setValueVolume(b, map.getClampingThresMin(), request->depth);
 			    }
-			    response.success = true;
+			    response->success = true;
 		    } else {
-			    response.success = false;
+			    response->success = false;
 		    }
 	    },
 	    map_);
 	return true;
 }
 
-bool UFOMapNode::resetCallback(ufomap_msgs::srv::Reset::Request &request,
-                           ufomap_msgs::srv::Reset::Response &response)
+bool UFOMapNode::resetCallback(
+    const std::shared_ptr<ufomap_msgs::srv::Reset::Request> request,
+    std::shared_ptr<ufomap_msgs::srv::Reset::Response> response)
 {
 	std::visit(
 	    [this, &request, &response](auto &map) {
 		    if constexpr (!std::is_same_v<std::decay_t<decltype(map)>, std::monostate>) {
-			    map.clear(request.new_resolution, request.new_depth_levels);
-			    response.success = true;
+			    map.clear(request->new_resolution, request->new_depth_levels);
+			    response->success = true;
 		    } else {
-			    response.success = false;
+			    response->success = false;
 		    }
 	    },
 	    map_);
 	return true;
 }
 
-bool UFOMapNode::saveMapCallback(ufomap_msgs::srv::SaveMap::Request &request,
-                             ufomap_msgs::srv::SaveMap::Response &response)
+bool UFOMapNode::saveMapCallback(
+    const std::shared_ptr<ufomap_msgs::srv::SaveMap::Request> request,
+    std::shared_ptr<ufomap_msgs::srv::SaveMap::Response> response)
 {
 	std::visit(
 	    [this, &request, &response](auto &map) {
 		    if constexpr (!std::is_same_v<std::decay_t<decltype(map)>, std::monostate>) {
 			    ufo::geometry::BoundingVolume bv =
-			        ufomap_msgs::msgToUfo(request.bounding_volume);
-			    response.success = map.write(request.filename, bv, request.compress,
-			                                 request.depth, 1, request.compression_level);
+			        ufomap_ros_conversion::msgToUfo(request->bounding_volume);
+			    response->success = map.write(request->filename, bv, request->compress,
+			                                  request->depth, 1, request->compression_level);
 		    } else {
-			    response.success = false;
+			    response->success = false;
 		    }
 	    },
 	    map_);
 	return true;
 }
 
-void UFOMapNode::timerCallback(ros::TimerEvent const &event)
+void UFOMapNode::timerCallback()
 {
-	std_msgs::Header header;
-	header.stamp = ros::Time::now();
+	std_msgs::msg::Header header;
+	header.stamp = this->get_clock()->now();
 	header.frame_id = frame_id_;
 
 	if (!map_pub_.empty()) {
 		for (int i = 0; i < map_pub_.size(); ++i) {
-			if (map_pub_[i] &&
-			    (0 < map_pub_[i].getNumSubscribers() || map_pub_[i].isLatched())) {
+			if (map_pub_[i] && 0 < map_pub_[i]->get_subscription_count()) {
 				std::visit(
 				    [this, &header, i](auto &map) {
 					    if constexpr (!std::is_same_v<std::decay_t<decltype(map)>,
 					                                  std::monostate>) {
 						    auto start = std::chrono::steady_clock::now();
 
-						    ufomap_msgs::UFOMapStamped::Ptr msg(new ufomap_msgs::UFOMapStamped);
-						    if (ufomap_msgs::ufoToMsg(map, msg->map, compress_, i)) {
+						    auto msg = std::make_shared<ufomap_msgs::msg::UFOMapStamped>();
+						    if (ufomap_ros_conversion::ufoToMsg(
+						            map, msg->map, ufo::geometry::BoundingVolume(), compress_, i)) {
 							    msg->header = header;
-							    map_pub_[i].publish(msg);
+							    map_pub_[i]->publish(*msg);
 						    }
 
 						    double whole_time =
@@ -411,75 +458,137 @@ void UFOMapNode::timerCallback(ros::TimerEvent const &event)
 	publishInfo();
 }
 
-void UFOMapNode::configCallback(ufomap_mapping::UFOMapNodeConfig &config, uint32_t level)
+void UFOMapNode::initParams()
 {
 	// Read parameters
-	frame_id_ = config.frame_id;
+	frame_id_ = this->get_parameter("frame_id").as_string();
 
-	verbose_ = config.verbose;
+	verbose_ = this->get_parameter("verbose").as_bool();
 
-	max_range_ = config.max_range;
-	insert_depth_ = config.insert_depth;
-	simple_ray_casting_ = config.simple_ray_casting;
-	early_stopping_ = config.early_stopping;
-	async_ = config.async;
+	max_range_ = this->get_parameter("max_range").as_double();
+	insert_depth_ = this->get_parameter("insert_depth").as_int();
+	simple_ray_casting_ = this->get_parameter("simple_ray_casting").as_bool();
+	early_stopping_ = this->get_parameter("early_stopping").as_int();
+	async_ = this->get_parameter("async").as_bool();
 
-	clear_robot_ = config.clear_robot;
-	robot_frame_id_ = config.robot_frame_id;
-	robot_height_ = config.robot_height;
-	robot_radius_ = config.robot_radius;
-	clearing_depth_ = config.clearing_depth;
+	clear_robot_ = this->get_parameter("clear_robot").as_bool();
+	robot_frame_id_ = this->get_parameter("robot_frame_id").as_string();
+	robot_height_ = this->get_parameter("robot_height").as_double();
+	robot_radius_ = this->get_parameter("robot_radius").as_double();
+	clearing_depth_ = this->get_parameter("clearing_depth").as_int();
 
-	compress_ = config.compress;
-	update_part_of_map_ = config.update_part_of_map;
-	publish_depth_ = config.publish_depth;
+	compress_ = this->get_parameter("compress").as_bool();
+	update_part_of_map_ = this->get_parameter("update_part_of_map").as_bool();
+	publish_depth_ = this->get_parameter("publish_depth").as_int();
 
+	this->updateFromParams();
+}
+
+rcl_interfaces::msg::SetParametersResult UFOMapNode::parameterCallback(
+    const std::vector<rclcpp::Parameter> &params)
+{
+	rcl_interfaces::msg::SetParametersResult result;
+	result.successful = true;
+
+	for (const auto &param : params) {
+		if (param.get_name() == "frame_id")
+			frame_id_ = param.as_string();
+		else if (param.get_name() == "verbose")
+			verbose_ = param.as_bool();
+		else if (param.get_name() == "max_range")
+			max_range_ = param.as_double();
+		else if (param.get_name() == "insert_depth")
+			insert_depth_ = param.as_int();
+		else if (param.get_name() == "simple_ray_casting")
+			simple_ray_casting_ = param.as_bool();
+		else if (param.get_name() == "early_stopping")
+			early_stopping_ = param.as_int();
+		else if (param.get_name() == "async")
+			async_ = param.as_bool();
+		else if (param.get_name() == "clear_robot")
+			clear_robot_ = param.as_bool();
+		else if (param.get_name() == "robot_frame_id")
+			robot_frame_id_ = param.as_string();
+		else if (param.get_name() == "robot_height")
+			robot_height_ = param.as_double();
+		else if (param.get_name() == "robot_radius")
+			robot_radius_ = param.as_double();
+		else if (param.get_name() == "clearing_depth")
+			clearing_depth_ = param.as_int();
+		else if (param.get_name() == "compress")
+			compress_ = param.as_bool();
+		else if (param.get_name() == "update_part_of_map")
+			update_part_of_map_ = param.as_bool();
+		else if (param.get_name() == "publish_depth")
+			publish_depth_ = param.as_int();
+		else if (param.get_name() == "pub_rate")
+			pub_rate_ = param.as_double();
+		else if (param.get_name() == "map_queue_size")
+			map_queue_size_ = param.as_int();
+	}
+
+	this->updateFromParams();
+
+	return result;
+}
+
+void UFOMapNode::updateFromParams()
+{
 	std::visit(
-	    [this, &config](auto &map) {
+	    [this](auto &map) {
 		    if constexpr (!std::is_same_v<std::decay_t<decltype(map)>, std::monostate>) {
-			    map.setProbHit(config.prob_hit);
-			    map.setProbMiss(config.prob_miss);
-			    map.setClampingThresMin(config.clamping_thres_min);
-			    map.setClampingThresMax(config.clamping_thres_max);
+			    map.setProbHit(this->get_parameter("prob_hit").as_double());
+			    map.setProbMiss(this->get_parameter("prob_miss").as_double());
+			    map.setClampingThresMin(this->get_parameter("clamping_thres_min").as_double());
+			    map.setClampingThresMax(this->get_parameter("clamping_thres_max").as_double());
 		    }
 	    },
 	    map_);
 
-	transform_timeout_.fromSec(config.transform_timeout);
+	transform_timeout_ = rclcpp::Duration::from_seconds(
+	    this->get_parameter("transform_timeout").as_double());
 
 	// Set up publisher
-	if (map_pub_.empty() || map_pub_[0].isLatched() != config.map_latch ||
-	    map_queue_size_ != config.map_queue_size) {
+	const int new_map_queue_size_ = this->get_parameter("map_queue_size").as_int();
+	if (map_pub_.empty() || map_queue_size_ != new_map_queue_size_) {
 		map_pub_.resize(publish_depth_ + 1);
 		for (int i = 0; i < map_pub_.size(); ++i) {
-			map_queue_size_ = config.map_queue_size;
+			map_queue_size_ = new_map_queue_size_;
 			std::string final_topic = i == 0 ? "map" : "map_depth_" + std::to_string(i);
-			map_pub_[i] = nh_priv_.advertise<ufomap_msgs::UFOMapStamped>(
-			    final_topic, map_queue_size_,
-			    boost::bind(&UFOMapNode::mapConnectCallback, this, _1, i),
-			    ros::SubscriberStatusCallback(), ros::VoidConstPtr(), config.map_latch);
+			map_pub_[i] = this->create_publisher<ufomap_msgs::msg::UFOMapStamped>(
+			    final_topic, map_queue_size_);
+			// map_pub_[i] = nh_priv_.advertise<ufomap_msgs::msg::UFOMapStamped>(
+			//     final_topic, map_queue_size_,
+			//     boost::bind(&UFOMapNode::mapConnectCallback, this, _1, i),
+			//     ros::SubscriberStatusCallback(), ros::VoidConstPtr(), new_map_latch_);
 		}
 	}
 
 	// Set up subscriber
-	if (!cloud_sub_ || cloud_in_queue_size_ != config.cloud_in_queue_size) {
-		cloud_in_queue_size_ = config.cloud_in_queue_size;
-		cloud_sub_ =
-		    nh_.subscribe("cloud_in", cloud_in_queue_size_, &UFOMapNode::cloudCallback, this);
+	const int new_cloud_in_queue_size_ =
+	    this->get_parameter("cloud_in_queue_size").as_int();
+	if (!cloud_sub_ || cloud_in_queue_size_ != new_cloud_in_queue_size_) {
+		cloud_in_queue_size_ = new_cloud_in_queue_size_;
+		cloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
+		    "cloud_in", rclcpp::QoS(cloud_in_queue_size_),
+		    std::bind(&UFOMapNode::cloudCallback, this, std::placeholders::_1));
 	}
 
 	// Set up timer
-	if (!pub_timer_ || pub_rate_ != config.pub_rate) {
-		pub_rate_ = config.pub_rate;
+	const double new_pub_rate_ = this->get_parameter("pub_rate").as_double();
+	if (!pub_timer_ || pub_rate_ != new_pub_rate_) {
+		pub_rate_ = new_pub_rate_;
 		if (0 < pub_rate_) {
-			pub_timer_ =
-			    nh_priv_.createTimer(ros::Rate(pub_rate_), &UFOMapNode::timerCallback, this);
+			pub_timer_ = this->create_wall_timer(
+			    std::chrono::milliseconds(static_cast<int>(1000 / pub_rate_)),
+			    std::bind(&UFOMapNode::timerCallback, this));
 		} else {
-			pub_timer_.stop();
+			pub_timer_ = nullptr;
 		}
 	}
 
-	update_rate_ = ros::Duration(1.0 / config.update_rate);
+	update_rate_ = rclcpp::Duration::from_seconds(
+	    1.0 / this->get_parameter("update_rate").as_double());
 }
 
 }  // namespace ufomap_mapping

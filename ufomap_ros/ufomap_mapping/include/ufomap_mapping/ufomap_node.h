@@ -53,8 +53,8 @@
 #include <ufomap_msgs/srv/save_map.hpp>
 
 // ROS
-#include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 
 #include <diagnostic_msgs/msg/diagnostic_status.hpp>
 #include <rcl_interfaces/msg/set_parameters_result.hpp>
@@ -79,31 +79,34 @@ class UFOMapNode : public rclcpp::Node
 
 	void publishInfo();
 
-	bool getMapCallback(ufomap_msgs::srv::GetMap::Request &request,
-	                    ufomap_msgs::srv::GetMap::Response &response);
+	bool getMapCallback(const std::shared_ptr<ufomap_msgs::srv::GetMap::Request> request,
+	                    std::shared_ptr<ufomap_msgs::srv::GetMap::Response> response);
 
-	bool clearVolumeCallback(ufomap_msgs::srv::ClearVolume::Request &request,
-	                         ufomap_msgs::srv::ClearVolume::Response &response);
+	bool clearVolumeCallback(
+	    const std::shared_ptr<ufomap_msgs::srv::ClearVolume::Request> request,
+	    std::shared_ptr<ufomap_msgs::srv::ClearVolume::Response> response);
 
-	bool resetCallback(ufomap_msgs::srv::Reset::Request &request,
-	                   ufomap_msgs::srv::Reset::Response &response);
+	bool resetCallback(const std::shared_ptr<ufomap_msgs::srv::Reset::Request> request,
+	                   std::shared_ptr<ufomap_msgs::srv::Reset::Response> response);
 
-	bool saveMapCallback(ufomap_msgs::srv::SaveMap::Request &request,
-	                     ufomap_msgs::srv::SaveMap::Response &response);
+	bool saveMapCallback(const std::shared_ptr<ufomap_msgs::srv::SaveMap::Request> request,
+	                     std::shared_ptr<ufomap_msgs::srv::SaveMap::Response> response);
+
+	void initParams();
+	rcl_interfaces::msg::SetParametersResult parameterCallback(
+	    const std::vector<rclcpp::Parameter> &params);
+	void updateFromParams();
 
 	void timerCallback();
 
-	// Callback for parameter updates
-	rcl_interfaces::msg::SetParametersResult parameterCallback(
-	    const std::vector<rclcpp::Parameter> &params);
-
  private:
+	bool node_init;
+
 	// Subscribers
 	rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_;
 	unsigned int cloud_in_queue_size_;
 
 	// Publishers
-
 	std::vector<rclcpp::Publisher<ufomap_msgs::msg::UFOMapStamped>::SharedPtr> map_pub_;
 	unsigned int map_queue_size_;
 	rclcpp::TimerBase::SharedPtr pub_timer_;
@@ -119,12 +122,9 @@ class UFOMapNode : public rclcpp::Node
 	rclcpp::Service<ufomap_msgs::srv::SaveMap>::SharedPtr save_map_server_;
 
 	// TF2
-	tf2_ros::Buffer tf_buffer_;
-	std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+	std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+	std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
 	rclcpp::Duration transform_timeout_;
-
-	// Dynamic reconfigure
-	// dynamic_reconfigure::Server<ufomap_mapping::ServerConfig> cs_;
 
 	//
 	// UFO Parameters

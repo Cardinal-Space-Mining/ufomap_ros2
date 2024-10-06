@@ -1,0 +1,106 @@
+ufomap_node:
+  ros__parameters:
+
+    # Frame id of the map
+    # str_t
+    frame_id: "map"
+
+
+    # Max range (m) when integrating data into map 
+    # double_t (-1 - 1000)
+    max_range: -1.0
+
+    # Integration depth
+    # int_t (0 - 10)
+    insert_depth: 0
+
+    # Use simple ray casting
+    # bool_t
+    simple_ray_casting: False
+
+    # Early stopping
+    # int_t (0 - 10)
+    early_stopping: 0
+
+    # Async integration
+    # bool_t
+    async: True
+
+
+    # Clear map at robot position 
+    # bool_t
+    clear_robot: False
+
+    # Frame id of the robot
+    # str_t
+    robot_frame_id: "base_link"
+
+    # Robot height (m)
+    # double_t
+    robot_height: 0.2
+
+    # Robot radius (m)
+    # double_t
+    robot_radius: 0.5
+    
+    # Clearing depth",                                      
+    # int_t (0 - 10)
+    clearing_depth: 0
+
+
+    # Compress msgs
+    # bool_t
+    compress: False
+
+    # Publish updated parts of map
+    # bool_t
+    update_part_of_map: True
+
+    # How often map updates should be published (/s) (0 == asap)
+    # double_t (0.0 - 100.0)
+    update_rate: 0.0
+
+    # Depth of published map(s)"
+    # int_t (0 - 10)
+    publish_depth: 4
+
+    # Probability for hit
+    # double_t (0.0 - 1.0)
+    prob_hit: 0.7
+
+    # Probability for miss
+    # double_t (0.0 - 1.0)
+    prob_miss: 0.4
+
+    # Minimum clamping threshold
+    # double_t (0.0 - 1.0)
+    clamping_thres_min: 0.1192
+
+    # Maximum clamping threshold
+    # double_t (0.0 - 1.0)
+    clamping_thres_max: 0.971
+
+    # How often the whole map should be published (/s) (0 == never)
+    # double_t (0.0 - 100.0)
+    pub_rate: 0.0
+
+
+    # How long to wait for transform (s)
+    # double_t (0.0 - 100.0)
+    transform_timeout: 0.1
+
+    # Queue size for map
+    # int_t (0 - 10000)
+    map_queue_size: 10
+
+    # Queue size for cloud_in
+    # int_t (0 - 10000)
+    cloud_in_queue_size: 10
+
+    # Enable latched map topic
+    # bool_t
+    map_latch: False
+
+    # Enable verbose output
+    # bool_t
+    verbose: False
