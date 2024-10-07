@@ -1003,8 +1003,8 @@ class OccupancyMapBase : public Octree<DATA_TYPE, OccupancyMapInnerNode<DATA_TYP
 			        [&aabb](auto&& arg) -> bool { return geometry::intersects(arg, aabb); },
 			        bounding_volume)) {
 				if (0 == child_depth) {
-					if (setOccupancy(Base::getLeafChild(node, i).value.occupancy,
-					                 occupancy_value)) {
+					if (didSetOccupancy(Base::getLeafChild(node, i).value.occupancy,
+					                    occupancy_value)) {
 						changed = true;
 					}
 				} else {
@@ -1016,7 +1016,7 @@ class OccupancyMapBase : public Octree<DATA_TYPE, OccupancyMapInnerNode<DATA_TYP
 						}
 					} else {
 						Base::deleteChildren(child, child_depth);
-						if (setOccupancy(child.value.occupancy, occupancy_value)) {
+						if (didSetOccupancy(child.value.occupancy, occupancy_value)) {
 							changed = true;
 						}
 						if (updateNode(child, child_depth)) {
@@ -1044,7 +1044,7 @@ class OccupancyMapBase : public Octree<DATA_TYPE, OccupancyMapInnerNode<DATA_TYP
 		}
 
 		if (code.getDepth() != depth) {
-			createNode(path, code, depth);
+			this->createNode(code, path, depth);
 			depth = code.getDepth();
 		}
 
@@ -1148,7 +1148,7 @@ class OccupancyMapBase : public Octree<DATA_TYPE, OccupancyMapInnerNode<DATA_TYP
 	// Set occupancy
 	//
 
-	bool setOccupancy(LogitType& current_value, LogitType const& new_value)
+	bool didSetOccupancy(LogitType& current_value, LogitType const& new_value)
 	{
 		LogitType old_occupancy = current_value;
 		current_value = std::clamp<LogitType>(new_value, clamping_thres_min_log_,

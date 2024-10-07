@@ -40,12 +40,12 @@
  */
 
 // UFO ROS
-#include <ufomap_ros/conversions.h>
+#include <ufomap_conversions/conversions.h>
 
 // ROS
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 
-namespace ufomap_ros_conversions
+namespace ufomap_conversions
 {
 void getFields(sensor_msgs::msg::PointCloud2 const& cloud, bool& has_x, bool& has_y,
                bool& has_z, bool& has_rgb)
@@ -468,4 +468,4 @@ ufomap_msgs::msg::BoundingVolume ufoToMsg(
 	return msg;
 }
 
-}  // namespace ufomap_ros
+}  // namespace ufomap_conversions

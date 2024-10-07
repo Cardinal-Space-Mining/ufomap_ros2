@@ -19,5 +19,6 @@
 
   <export>
     <build_type>cmake</build_type>
+    <member_of_group>ufomap_ros2</member_of_group>
   </export>
 </package>

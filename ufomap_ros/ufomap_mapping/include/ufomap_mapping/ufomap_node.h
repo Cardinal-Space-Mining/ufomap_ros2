@@ -92,6 +92,7 @@ class UFOMapNode : public rclcpp::Node
 	bool saveMapCallback(const std::shared_ptr<ufomap_msgs::srv::SaveMap::Request> request,
 	                     std::shared_ptr<ufomap_msgs::srv::SaveMap::Response> response);
 
+	OnSetParametersCallbackHandle::SharedPtr param_callback_handle_;
 	void initParams();
 	rcl_interfaces::msg::SetParametersResult parameterCallback(
 	    const std::vector<rclcpp::Parameter> &params);

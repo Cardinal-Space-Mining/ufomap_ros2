@@ -26,11 +26,13 @@
   <depend>diagnostic_msgs</depend>
 
   <depend>ufomap_msgs</depend>
+  <depend>ufomap_conversions</depend>
 
   <!-- Non-ROS dependencies -->
   <depend>ufomap</depend>
 
   <export>
     <build_type>ament_cmake</build_type>
+    <member_of_group>ufomap_ros2</member_of_group>
   </export>
 </package>

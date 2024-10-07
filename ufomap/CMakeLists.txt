@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9)
-
+set (CMAKE_CXX_STANDARD 17)
 project(ufomap 
 	VERSION 1.0.0
 	DESCRIPTION "UFOMap: An Efficient Probabilistic 3D Mapping Framework That Embraces the Unknown"

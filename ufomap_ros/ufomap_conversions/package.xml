@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>ufomap_msgs</name>
+  <name>ufomap_conversions</name>
   <version>1.0.0</version>
-  <description>The ufomap_msgs package provides messages and serializations for the UFOMap library</description>
+  <description>The ufomap_conversions package</description>
 
   <maintainer email="connortynan16@gmail.com">Connor Tynan</maintainer>
   <author email="connortynan16@gmail.com">Connor Tynan</author>
@@ -15,19 +15,14 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <!-- Package dependencies -->
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
-  <depend>std_msgs</depend>
 
-  <!-- ROS 2 message dependencies -->
-  <build_depend>rosidl_default_generators</build_depend>
-  <exec_depend>rosidl_default_runtime</exec_depend>
-  <member_of_group>rosidl_interface_packages</member_of_group>
+  <depend>ufomap_msgs</depend>
 
   <!-- Non-ROS dependencies -->
-  <build_depend>ufomap</build_depend>
-
-  <!-- Documentation dependencies -->
-  <doc_depend>doxygen</doc_depend>
+  <depend>ufomap</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

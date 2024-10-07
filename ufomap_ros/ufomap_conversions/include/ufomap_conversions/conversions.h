@@ -78,7 +78,7 @@
 // STD
 #include <type_traits>
 
-namespace ufomap_ros_conversion
+namespace ufomap_conversions
 {
 // Point clouds
 void rosToUfo(sensor_msgs::msg::PointCloud2 const& cloud_in,
@@ -239,6 +239,6 @@ bool ufoToMsg(TreeType const& tree, ufomap_msgs::msg::UFOMap& msg,
 	return true;
 }
 
-}  // namespace ufomap_ros_conversion
+}  // namespace ufomap_conversions
 
 #endif  // UFOMAP_ROS_CONVERSIONS_H
